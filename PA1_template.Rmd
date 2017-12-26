@@ -7,7 +7,11 @@ output:
 
 
 ## Loading and preprocessing the data
-
+```{R}
+#setwd("D:/git_repo/RepData_PeerAssessment1")
+library(dplyr)
+read.csv("activity.csv", stringsAsFactors = FALSE)
+```
 
 
 ## What is mean total number of steps taken per day?
