@@ -8,7 +8,9 @@ output:
 
 ```r
 #setwd("D:/git_repo/RepData_PeerAssessment1")
-library(dplyr); library(lubridate); library(stringr)
+library(dplyr); library(lubridate); library(stringr); 
+library(chron); library(ggplot2)
+par(mfrow=c(1,1))
 ```
 # Loading and preprocessing the data
 
@@ -30,7 +32,7 @@ hist(steps_by_day$tot, breaks = 10,
      xlab="Steps by Day", main ="Histogram of Steps taken by Day")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
 ```r
 mean_steps <- as.integer(mean(steps_by_day$tot))
@@ -50,7 +52,7 @@ with(steps_by_int_mean, plot(x=interval, y=int_mean, type="l",
      xlab="intervals", ylab="mean steps", main="Steps Time Series Plot"))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 ```r
 max_int <- which.max(steps_by_int_mean$int_mean)
@@ -99,25 +101,54 @@ Number of NAs on new DataFrame **actx: 0**
 
 
 ```r
-steps_by_day <- act %>% group_by(date) %>% summarize(tot = sum(steps, na.rm=T))
+steps_by_day <- actx %>% group_by(date) %>% summarize(tot = sum(steps, na.rm=T))
 hist(steps_by_day$tot, breaks = 10, xlab="Steps by Day (no NAs in DataSet)", 
      main ="Histogram of Steps taken by Day")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ```r
 mean_steps2 <- as.integer(mean(steps_by_day$tot))
 median_steps2 <- as.integer(median(steps_by_day$tot))
 ```
-With no NAs, the mean steps per day is **9354** and the
-median steps per day is **10395**
+With no NAs, the mean steps per day is **10766** and the
+median steps per day is **10766**
 
-**These values don´t differ from the estimates calculated before.**
+The mean increased from **9354** to **10766** and the median increased from **10395** to **10766**.
 
-**There was no impact by filling the NAs.** By filling NAs with the steps average of the  same interval, there is no impact on the results.
+**There was an impact by filling the NAs.** By filling NAs with the steps average of the  same interval, the mean and median values increased.
 
 
 # Are there differences in activity patterns between weekdays and weekends?
-* Create a new factor variable in the dataset with two levels ("weekday" & "weekend") indicating whether a given date is a weekday or weekend day.
-* Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+* Create a new factor with two levels ("weekday" & "weekend").
+* Make a panel with the time series plot of weekdays & weekends (y-axis) and the 5-minute interval (x-axis) and the average number of steps. 
+
+There was no instruction if the dataset to use was the one with NAs or the on without. I decided to use the one without the NAs replaced by the average of steps at the same interval.
+
+```r
+actx <- actx %>% mutate(flag = ifelse(is.weekend(actx$date),"weekend","weekday" )) %>%
+      mutate(flag = as.factor(flag)) %>% select(steps, interval, flag) 
+
+str(actx)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : num  1.717 0.3396 0.1321 0.1509 0.0755 ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+##  $ flag    : Factor w/ 2 levels "weekday","weekend": 1 1 1 1 1 1 1 1 1 1 ...
+```
+Factor **flag** created: levels: (weekend, weekday)
+
+```r
+par(mfrow=c(2,1))
+steps_weekend <- actx %>% filter(flag == "weekend") %>% group_by(interval) %>% 
+    summarize(steps = mean(steps))
+with(steps_weekend, plot(x=interval, y=steps, type="l", main="weekends"))
+steps_weekday <- actx %>% filter(flag == "weekday") %>% group_by(interval) %>% 
+    summarize(steps = mean(steps))
+with(steps_weekday, plot(x=interval, y=steps, type="l", main="weekdays"))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
